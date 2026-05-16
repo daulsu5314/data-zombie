@@ -7,9 +7,9 @@ import {
   useRoom, usePlayers, useCards, useLogs,
 } from "@/lib/realtime";
 import {
-  copyCard, createOriginalCards, deleteCard, endRoom, triggerBreach,
+  copyCard, createOriginalCards, deleteCard, endRoom,
 } from "@/lib/game";
-import { CARDS_PER_PLAYER, COPY_COOLDOWN_MS, DELETER_COUNT, GAME_START_GRACE_MS, getInfectionStage } from "@/lib/constants";
+import { CARDS_PER_PLAYER, CARD_PROTECTION_MS, COPY_COOLDOWN_MS, DELETER_COUNT, GAME_START_GRACE_MS, getInfectionStage } from "@/lib/constants";
 import { CardItem } from "@/components/CardItem";
 import { ServerLog } from "@/components/ServerLog";
 import { usePopEffects } from "@/components/PopEffect";
@@ -75,7 +75,6 @@ export default function PlayPage() {
   const [search, setSearch] = useState("");
   const pop = usePopEffects();
   const cooldownRef = useRef<Record<string, number>>({});
-  const breachTriggerRef = useRef(false);  // 중복 발동 방지
   const endRoomTriggerRef = useRef(false); // 종료 중복 호출 방지
   // 시간 0 도달 시 즉시 종료 화면 보여주기 (DB 응답 안 기다림)
   const [forceEnd, setForceEnd] = useState(false);
@@ -90,20 +89,6 @@ export default function PlayPage() {
       const elapsed = (Date.now() - new Date(room.started_at!).getTime()) / 1000;
       const left = Math.max(0, room.duration_seconds - elapsed);
       setTimeLeft(left);
-
-      // 1분 30초 (90초) 경과 시 데이터 유출 사고 자동 발동
-      // 모든 클라이언트가 동시에 조건 만족하지만 DB 함수에서 한 번만 실행되게 처리
-      const BREACH_TRIGGER_SECONDS = 90;
-      if (
-        elapsed >= BREACH_TRIGGER_SECONDS &&
-        !room.breach_at &&
-        !breachTriggerRef.current
-      ) {
-        breachTriggerRef.current = true;
-        triggerBreach(room.id).catch(() => {
-          breachTriggerRef.current = false; // 실패 시 다시 시도 가능
-        });
-      }
 
       // 시간 다 되면 즉시 종료 화면으로 (DB 응답 안 기다림)
       if (left <= 0 && room.status === "playing") {
@@ -120,15 +105,6 @@ export default function PlayPage() {
     const id = setInterval(tick, 250);
     return () => clearInterval(id);
   }, [room]);
-
-  // BREACH 발생 시 화면에 알람 표시 (3초간)
-  const [breachAlert, setBreachAlert] = useState(false);
-  useEffect(() => {
-    if (!room?.breach_at) return;
-    setBreachAlert(true);
-    const id = setTimeout(() => setBreachAlert(false), 3500);
-    return () => clearTimeout(id);
-  }, [room?.breach_at]);
 
   // 카드 제출
   async function handleSubmit() {
@@ -167,16 +143,27 @@ export default function PlayPage() {
     return m;
   }, [liveCards]);
 
-  // 검색
+  // 검색 — 매칭되는 카드 중 1개만 노란 ring으로 강조 (내 카드 우선)
   const searchLower = search.trim().toLowerCase();
 
-  function searchHit(c: Card) {
-    if (!searchLower) return false;
-    return (
+  const searchHitId = useMemo(() => {
+    if (!searchLower) return null;
+    // 매칭되는 카드들 필터링
+    const matches = liveCards.filter((c) =>
       c.name.toLowerCase().includes(searchLower) ||
       c.hobby.toLowerCase().includes(searchLower) ||
       c.birthday.toLowerCase().includes(searchLower)
     );
+    if (matches.length === 0) return null;
+    // 내 카드 우선, 그 중 가장 오래된 것 우선
+    const mine = matches.filter((c) => c.owner_id === myId);
+    const pool = mine.length > 0 ? mine : matches;
+    pool.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    return pool[0].id;
+  }, [searchLower, liveCards, myId]);
+
+  function searchHit(c: Card) {
+    return c.id === searchHitId;
   }
 
   // 카드 좌클릭 — 역할에 따라 다르게 동작
@@ -201,6 +188,11 @@ export default function PlayPage() {
       if (elapsed < GAME_START_GRACE_MS) {
         return;
       }
+    }
+    // 개별 카드 보호 시간 — 생성 후 3초간 삭제 불가
+    const cardAge = Date.now() - new Date(c.created_at).getTime();
+    if (cardAge < CARD_PROTECTION_MS) {
+      return;
     }
     // 낙관적 업데이트 — 즉시 화면에서 숨김 (DB 응답 안 기다림)
     setOptimisticDeleted(prev => {
@@ -564,30 +556,6 @@ export default function PlayPage() {
       {/* 메인 화면 */}
       {tab === "field" ? (
         <div className="relative w-full h-[480px] md:h-[560px] field-bg bg-black/40 border border-white/10 rounded-xl overflow-hidden">
-          {/* 데이터 유출 사고 알람 오버레이 */}
-          {breachAlert && (
-            <div
-              className="absolute inset-0 z-[9999] flex items-center justify-center pointer-events-none"
-              style={{
-                background: "radial-gradient(ellipse at center, rgba(239,68,68,0.4) 0%, rgba(0,0,0,0.85) 100%)",
-                animation: "breach-flash 0.5s ease-out",
-              }}
-            >
-              <div className="text-center font-mono animate-pulse">
-                <div className="text-red-500 text-6xl md:text-8xl font-bold tracking-widest mb-2"
-                  style={{ textShadow: "0 0 20px rgba(239,68,68,0.8), 4px 0 0 rgba(0,255,80,0.6), -4px 0 0 rgba(239,68,68,0.6)" }}>
-                  ⚠ BREACH ⚠
-                </div>
-                <div className="text-red-300 text-lg md:text-2xl tracking-[0.3em] mb-1">
-                  DATA LEAK DETECTED
-                </div>
-                <div className="text-amber-300 text-sm md:text-base tracking-wider">
-                  데이터 유출 사고 발생! 카드들이 흩어졌어요...
-                </div>
-              </div>
-            </div>
-          )}
-
           {liveCards.map((c) => {
             const cnt = copyCountByOrigin[c.origin_id] ?? 0;
             return (
