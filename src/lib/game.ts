@@ -95,6 +95,11 @@ export async function endRoom(roomId: string) {
     .eq("id", roomId);
 }
 
+// 학생이 lobby에서 탭 닫을 때 자신을 제거 (게임 시작 후에는 유지)
+export async function leaveRoom(playerId: string) {
+  await supabase.from("players").delete().eq("id", playerId);
+}
+
 // ============================================
 // 데이터 유출 사고 발동
 // 모든 카드의 위치를 무작위로 변경 + 숨김 비율 증가
