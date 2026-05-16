@@ -8,6 +8,7 @@ import { DELETER_COUNT, MIN_PLAYERS_TO_START } from "@/lib/constants";
 import { TeacherFieldView } from "@/components/TeacherFieldView";
 import { ResultsView } from "@/components/ResultsView";
 import { RulesPanel } from "@/components/RulesPanel";
+import { GamePreview } from "@/components/GamePreview";
 import type { Room } from "@/types";
 
 export default function TeacherPage() {
@@ -168,8 +169,9 @@ export default function TeacherPage() {
                 </div>
                 <span className="text-xs text-white/40">▼ 펼치기/접기</span>
               </summary>
-              <div className="px-5 pb-5">
+              <div className="px-5 pb-5 space-y-4">
                 <RulesPanel />
+                <GamePreview />
               </div>
             </details>
 
