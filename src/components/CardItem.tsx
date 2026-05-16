@@ -52,12 +52,16 @@ export function CardItem({
   else if (focusMine && !isMine) opacity = 0.15;
 
   // 내 카드는 강하게 강조 + 항상 맨 위 (z-index)
-  // 보호 중이면 호박색 ring(아직 못 지움), 보호 끝나면 흰색 ring(지울 수 있음)
-  const mineRing = isMine
-    ? (showProtection
-        ? "ring-2 ring-amber-300/80 ring-offset-2 ring-offset-black"
-        : "ring-[3px] ring-white shadow-[0_0_24px_rgba(255,255,255,0.8)]")
-    : "";
+  // 보호 중이면 호박색만(아직 못 지움), 보호 끝나면 흰색만(지울 수 있음)
+  // ring 클래스가 중복 적용 안 되도록 명확하게 분기
+  let mineRing = "";
+  if (isMine) {
+    if (showProtection) {
+      mineRing = "ring-[3px] ring-amber-400 ring-offset-2 ring-offset-black";
+    } else {
+      mineRing = "ring-[3px] ring-white shadow-[0_0_24px_rgba(255,255,255,0.8)]";
+    }
+  }
   const hitRing = searchHit ? "ring-2 ring-yellow-300 ring-offset-1 ring-offset-black" : "";
   const pulse = stage === "critical" ? "animate-pulse" : "";
   const protectedCursor = showProtection ? "cursor-not-allowed" : "cursor-pointer";
