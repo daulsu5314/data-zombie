@@ -12,8 +12,12 @@ export const MIN_PLAYERS_TO_START = 2;
 
 // 게임 시작 후 모든 카드 삭제 불가 시간 (밀리초)
 // 시작 10초 동안 카오스 — 유포자가 마음껏 복제 가능
-// 10초 후부터는 즉시 삭제 가능 (보호 표시 없음)
 export const GAME_START_GRACE_MS = 10000;
+
+// 개별 카드 보호 시간 (밀리초)
+// 새로 생성된 카드는 3초간 삭제 불가
+// → 유포자가 복제한 직후 바로 삭제되는 것 방지
+export const CARD_PROTECTION_MS = 3000;
 
 // 카드 작성 개수
 export const CARDS_PER_PLAYER = 1;
