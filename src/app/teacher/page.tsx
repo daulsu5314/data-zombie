@@ -6,6 +6,7 @@ import { createRoom, assignRolesAndStart, endRoom } from "@/lib/game";
 import { usePlayers, useRoom, useCards, useLogs } from "@/lib/realtime";
 import { DELETER_COUNT, MIN_PLAYERS_TO_START } from "@/lib/constants";
 import { TeacherFieldView } from "@/components/TeacherFieldView";
+import { ResultsView } from "@/components/ResultsView";
 import type { Room } from "@/types";
 
 export default function TeacherPage() {
@@ -61,6 +62,9 @@ export default function TeacherPage() {
   const deleteCount = logs.filter((l) => l.action === "DELETE").length;
   const spreaderCount = players.filter((p) => p.role === "spreader").length;
   const deleterCount = players.filter((p) => p.role === "deleter").length;
+
+  // 카드를 등록한 학생 id 집합 (대기실에서 누가 카드 썼는지 표시용)
+  const playersWithCards = new Set(cards.filter((c) => c.is_original).map((c) => c.owner_id));
 
   // origin_id별 살아있는 복제본 수 (CardItem과 동일 로직)
   const copyByOrigin: Record<string, { count: number; name: string }> = {};
@@ -168,7 +172,7 @@ export default function TeacherPage() {
 
             {/* 입장한 학생 목록 */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-3">
                 <h2 className="font-medium">
                   입장한 학생 <span className="text-purple-300">{players.length}</span>명
                 </h2>
@@ -180,6 +184,23 @@ export default function TeacherPage() {
                   게임 시작 ▶
                 </button>
               </div>
+
+              {/* 카드 작성 진행률 */}
+              <div className="mb-3 text-xs text-white/60 flex items-center gap-2">
+                <span>📇 카드 작성:</span>
+                <span className="text-green-300 font-medium">{playersWithCards.size}</span>
+                <span>/</span>
+                <span>{players.length}명</span>
+                {players.length > 0 && (
+                  <div className="flex-1 ml-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-400 transition-all"
+                      style={{ width: `${(playersWithCards.size / players.length) * 100}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-1.5 max-h-80 overflow-y-auto">
                 {players.length === 0 && (
                   <p className="text-sm text-white/40 text-center py-8">
@@ -187,8 +208,9 @@ export default function TeacherPage() {
                   </p>
                 )}
                 {players.map((p, idx) => {
-                  const deleterCount = Math.min(DELETER_COUNT, players.length);
-                  const willBeDeleter = idx < deleterCount;
+                  const deleterCnt = Math.min(DELETER_COUNT, players.length);
+                  const willBeDeleter = idx < deleterCnt;
+                  const hasCard = playersWithCards.has(p.id);
                   return (
                     <div
                       key={p.id}
@@ -197,6 +219,12 @@ export default function TeacherPage() {
                       <span className="text-[10px] text-white/40 tabular-nums w-5">#{idx + 1}</span>
                       <div className={`w-2 h-2 rounded-full ${willBeDeleter ? "bg-green-400" : "bg-red-400"}`} />
                       <span className="text-sm flex-1">{p.nickname}</span>
+                      <span
+                        className={`text-[10px] ${hasCard ? "text-green-300" : "text-white/30"}`}
+                        title={hasCard ? "카드 등록 완료" : "카드 미작성"}
+                      >
+                        {hasCard ? "📇 ✓" : "📇 ⋯"}
+                      </span>
                       <span className={`text-[10px] tracking-wider ${willBeDeleter ? "text-green-300/70" : "text-red-300/70"}`}>
                         {willBeDeleter ? "삭제팀" : "유포자"}
                       </span>
@@ -374,18 +402,21 @@ export default function TeacherPage() {
         )}
 
         {activeRoom.status === "ended" && (
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
-            <div className="text-4xl mb-3">📊</div>
-            <h2 className="text-xl font-bold mb-2">게임 종료</h2>
-            <p className="text-white/60 text-sm mb-4">
-              학생들 화면에서 통계와 토론 화면을 볼 수 있어요
-            </p>
-            <button
-              onClick={handleCreate}
-              className="bg-purple-500 hover:bg-purple-400 text-white font-medium px-6 py-2 rounded-lg"
-            >
-              새 게임 시작
-            </button>
+          <div className="space-y-4">
+            <ResultsView
+              cards={cards}
+              logs={logs}
+              durationSec={activeRoom.duration_seconds}
+              myRole={null}
+            />
+            <div className="text-center">
+              <button
+                onClick={handleCreate}
+                className="bg-purple-500 hover:bg-purple-400 text-white font-medium px-6 py-2 rounded-lg"
+              >
+                새 게임 시작
+              </button>
+            </div>
           </div>
         )}
       </div>
