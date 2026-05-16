@@ -10,15 +10,17 @@ export const DELETER_COUNT = 13;
 // 최소 인원 (이보다 적으면 게임 시작 불가)
 export const MIN_PLAYERS_TO_START = 2;
 
-// 카드 생성 후 삭제 불가 보호 시간 (밀리초)
-// 유포자가 먼저 복제할 시간을 확보하고, 즉시 삭제로 게임이 끝나는 것 방지
-export const DELETE_PROTECTION_MS = 5000;
+// 게임 시작 후 모든 카드 삭제 불가 시간 (밀리초)
+// 시작 5초 동안 카오스 — 유포자가 마음껏 복제 가능
+// 5초 후부터는 즉시 삭제 가능 (보호 표시 없음)
+export const GAME_START_GRACE_MS = 5000;
 
 // 카드 작성 개수
 export const CARDS_PER_PLAYER = 1;
 
-// 복제 규칙 — 한 번 클릭에 항상 2개씩 복제
-export const COPY_BURST_COUNT = 2;
+// 복제 규칙 — 한 번 클릭에 2~3개 랜덤 복제
+export const COPY_BURST_MIN = 2;
+export const COPY_BURST_MAX = 3;
 export const COPY_HIDDEN_PROBABILITY = 0.2;
 export const COPY_COOLDOWN_MS = 300;
 
