@@ -75,6 +75,7 @@ export default function PlayPage() {
   const pop = usePopEffects();
   const cooldownRef = useRef<Record<string, number>>({});
   const breachTriggerRef = useRef(false);  // 중복 발동 방지
+  const endRoomTriggerRef = useRef(false); // 종료 중복 호출 방지
 
   // 타이머
   const [timeLeft, setTimeLeft] = useState(0);
@@ -99,9 +100,12 @@ export default function PlayPage() {
         });
       }
 
-      // 시간 다 되면 자동 종료 (먼저 본 사람이 종료)
-      if (left <= 0 && room.status === "playing") {
-        endRoom(room.id);
+      // 시간 다 되면 자동 종료 (먼저 본 사람이 종료, ref 가드로 중복 호출 방지)
+      if (left <= 0 && room.status === "playing" && !endRoomTriggerRef.current) {
+        endRoomTriggerRef.current = true;
+        endRoom(room.id).catch(() => {
+          endRoomTriggerRef.current = false;
+        });
       }
     };
     tick();
