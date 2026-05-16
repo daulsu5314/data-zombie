@@ -50,8 +50,8 @@ export function RulesPanel({ role, expectedRole }: Props) {
             <div className="text-[11px] text-white/70 leading-relaxed space-y-0.5">
               <div>• 화면에서 <b className="text-white">내 카드만</b> 클릭해서 삭제</div>
               <div>• 다른 친구 카드는 클릭 안 됨</div>
-              <div>• ⏱ <b className="text-amber-300">게임 시작 후 5초간 모든 카드 삭제 불가</b></div>
-              <div>• 🔍 검색창으로 숨겨진 내 정보 찾기</div>
+              <div>• ⏱ <b className="text-amber-300">게임 시작 후 10초간 모든 카드 삭제 불가</b></div>
+              <div>• 🔍 <b className="text-amber-300">대부분 카드는 숨겨져 있음!</b> 검색창에 이름/생일/취미 입력해 찾기</div>
               <div className="text-green-300/80 pt-1">
                 🎯 3분 안에 내 카드 전부 0개 만들기
               </div>
@@ -72,8 +72,9 @@ export function RulesPanel({ role, expectedRole }: Props) {
             </div>
             <div className="text-[11px] text-white/70 leading-relaxed space-y-0.5">
               <div>• 카드 <b className="text-white">클릭</b>해서 복제</div>
-              <div>• 한 번에 <b className="text-white">2~3개</b>로 복제 (펑!)</div>
-              <div>• ⚡ <b className="text-amber-300">시작 5초가 황금시간</b> (이때 삭제팀 손 못 댐)</div>
+              <div>• 한 번에 <b className="text-white">2개</b>로 복제 (펑!)</div>
+              <div>• 💨 복제된 카드는 <b className="text-red-300">대부분 숨김 상태</b>로 떠다님</div>
+              <div>• ⚡ <b className="text-amber-300">시작 10초가 황금시간</b> (이때 삭제팀 손 못 댐)</div>
               <div>• 내가 만든 카드는 복제 불가</div>
               <div className="text-red-300/80 pt-1">
                 🎯 3분 뒤 필드에 1개라도 남기기
