@@ -35,11 +35,12 @@ function CardItemImpl({
   const s = STAGE_STYLES[stage];
 
   // opacity 계산
-  // 숨김 + 검색에 안 걸림 → 흐리게 (단, 내 카드면 좀 더 잘 보이게)
-  // focusMine 모드: 내 카드 아니면 0.15
+  // 숨김 + 검색에 안 걸림 → 거의 안 보임 (인터넷에서 정보의 존재를 모르는 상태)
+  // 검색 매칭 시 → 또렷하게 (opacity 1, 노란 ring)
+  // focusMine 모드: 내 카드 아니면 매우 흐리게
   let opacity = 1;
   if (card.hidden && !searchHit) {
-    opacity = isMine ? 0.4 : 0.25;  // 내 숨김 카드는 더 보이게
+    opacity = isMine ? 0.15 : 0.05;  // 거의 안 보임
   } else if (focusMine && !isMine) {
     opacity = 0.15;
   }
