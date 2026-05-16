@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 import {
-  COPY_BURST_COUNT,
+  COPY_BURST_MIN,
+  COPY_BURST_MAX,
   COPY_HIDDEN_PROBABILITY,
   MAX_FIELD_CARDS,
   DELETER_COUNT,
@@ -160,16 +161,16 @@ export async function createOriginalCards(
 
 // ============================================
 // 복제 (유포자 액션) — 핵심 로직
-// 한 번 클릭으로 2~4개가 사방으로 튀어나감, 일부는 숨김 처리
+// 한 번 클릭으로 2~3개가 사방으로 튀어나감, 일부는 숨김 처리
 // ============================================
 export async function copyCard(card: Card, actorId: string, currentCardCount: number) {
   if (currentCardCount >= MAX_FIELD_CARDS) {
     return { copies: [], throttled: true };
   }
 
-  // 클릭 1번에 정확히 COPY_BURST_COUNT개(=2개) 복제
-  // 가능한 만큼만 복제 (상한 근접 시 자르기)
-  const safeBurst = Math.min(COPY_BURST_COUNT, MAX_FIELD_CARDS - currentCardCount);
+  // 클릭 1번에 2~3개 랜덤 복제
+  const burst = COPY_BURST_MIN + Math.floor(Math.random() * (COPY_BURST_MAX - COPY_BURST_MIN + 1));
+  const safeBurst = Math.min(burst, MAX_FIELD_CARDS - currentCardCount);
 
   const rows = [];
   for (let i = 0; i < safeBurst; i++) {
