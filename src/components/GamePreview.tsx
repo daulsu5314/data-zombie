@@ -22,7 +22,7 @@ export function GamePreview() {
         }}
       >
         {/* SAFE 카드 — 초록 */}
-        <div className="absolute left-[8%] top-[15%] bg-green-500/10 border border-green-400/50 rounded px-2 py-1.5 font-mono"
+        <div className="absolute left-[8%] top-[18%] bg-green-500/10 border border-green-400/50 rounded px-2 py-1.5 font-mono"
           style={{ boxShadow: "0 0 8px rgba(34,197,94,0.3)" }}>
           <div className="flex justify-between items-center mb-0.5">
             <span className="text-[11px] font-medium text-green-300">▸ 김지우</span>
@@ -33,7 +33,7 @@ export function GamePreview() {
         </div>
 
         {/* WARNING 카드 — 노랑 */}
-        <div className="absolute left-[35%] top-[10%] bg-amber-500/15 border border-amber-400/60 rounded px-2 py-1.5 font-mono"
+        <div className="absolute left-[35%] top-[12%] bg-amber-500/15 border border-amber-400/60 rounded px-2 py-1.5 font-mono"
           style={{ boxShadow: "0 0 10px rgba(251,191,36,0.4)" }}>
           <div className="flex justify-between items-center mb-0.5">
             <span className="text-[11px] font-medium text-amber-300">▸ 박서준</span>
@@ -45,7 +45,7 @@ export function GamePreview() {
         </div>
 
         {/* CRITICAL 카드 — 빨강 + 펄스 */}
-        <div className="absolute left-[62%] top-[15%] bg-red-500/15 border border-red-400/70 rounded px-2 py-1.5 font-mono animate-pulse"
+        <div className="absolute left-[62%] top-[18%] bg-red-500/15 border border-red-400/70 rounded px-2 py-1.5 font-mono animate-pulse"
           style={{ boxShadow: "0 0 12px rgba(239,68,68,0.5)" }}>
           <div className="flex justify-between items-center mb-0.5">
             <span className="text-[11px] font-medium text-red-300">▸ 이하늘</span>
@@ -57,7 +57,7 @@ export function GamePreview() {
         </div>
 
         {/* 내 카드 (MINE) — 흰 테두리 + MINE 배지 */}
-        <div className="absolute left-[15%] top-[55%] bg-green-500/10 border border-green-400/50 rounded px-2 py-1.5 font-mono"
+        <div className="absolute left-[20%] top-[58%] bg-green-500/10 border border-green-400/50 rounded px-2 py-1.5 font-mono"
           style={{
             boxShadow: "0 0 0 3px white, 0 0 20px rgba(255,255,255,0.6)",
             transform: "scale(1.1)",
@@ -75,31 +75,8 @@ export function GamePreview() {
           <div className="text-[9px] opacity-75 text-green-100">취미: 게임</div>
         </div>
 
-        {/* 보호 시간 카드 — 호박색 테두리 + 카운트다운 */}
-        <div className="absolute left-[55%] top-[58%] bg-green-500/10 border border-green-400/50 rounded px-2 py-1.5 font-mono"
-          style={{
-            boxShadow: "0 0 0 3px #fbbf24",
-          }}>
-          <div className="flex justify-between items-center mb-0.5">
-            <span className="text-[11px] font-medium text-green-300">
-              ▸ 정유나
-              <span className="ml-1 text-[7px] bg-white text-black px-1 py-0.5 rounded tracking-widest align-middle">
-                MINE
-              </span>
-            </span>
-            <span className="text-[8px] tracking-widest opacity-70 text-green-300">SAFE</span>
-          </div>
-          <div className="text-[9px] opacity-75 text-green-100">생일: 1023</div>
-          <div className="text-[9px] opacity-75 text-green-100">취미: 그림</div>
-          {/* 카운트다운 배지 */}
-          <div className="absolute -top-2 -right-2 bg-black border border-amber-400/80 rounded-full w-6 h-6 flex items-center justify-center text-[10px] font-bold text-amber-300"
-            style={{ boxShadow: "0 0 8px rgba(251,191,36,0.5)" }}>
-            3
-          </div>
-        </div>
-
         {/* 숨김 카드 (반투명) */}
-        <div className="absolute left-[80%] top-[60%] bg-amber-500/15 border border-amber-400/60 rounded px-2 py-1.5 font-mono"
+        <div className="absolute left-[78%] top-[60%] bg-amber-500/15 border border-amber-400/60 rounded px-2 py-1.5 font-mono"
           style={{ opacity: 0.15 }}>
           <div className="flex justify-between items-center mb-0.5">
             <span className="text-[11px] font-medium text-amber-300">▸ 한수민</span>
@@ -110,7 +87,7 @@ export function GamePreview() {
         </div>
 
         {/* Pop! 효과 */}
-        <div className="absolute left-[45%] top-[40%] text-red-400 font-bold text-sm font-mono"
+        <div className="absolute left-[48%] top-[42%] text-red-400 font-bold text-sm font-mono"
           style={{ textShadow: "0 0 8px rgba(239,68,68,0.8)" }}>
           Pop!
         </div>
@@ -139,13 +116,12 @@ export function GamePreview() {
           <span className="text-white/40">내 카드 (흰 테두리)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-2 bg-amber-500/20 rounded-sm border border-amber-400"></span>
-          <span className="text-amber-300">보호 5초</span>
-          <span className="text-white/40">호박색 + 카운트다운</span>
-        </div>
-        <div className="flex items-center gap-1.5">
           <span className="opacity-30">▸ 카드</span>
           <span className="text-white/40">숨김 (검색으로 발견)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-red-400 font-bold">Pop!</span>
+          <span className="text-white/40">복제 효과</span>
         </div>
       </div>
     </div>
