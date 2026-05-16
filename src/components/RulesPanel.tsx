@@ -50,7 +50,7 @@ export function RulesPanel({ role, expectedRole }: Props) {
             <div className="text-[11px] text-white/70 leading-relaxed space-y-0.5">
               <div>• 화면에서 <b className="text-white">내 카드만</b> 클릭해서 삭제</div>
               <div>• 다른 친구 카드는 클릭 안 됨</div>
-              <div>• ⏱ <b className="text-amber-300">카드 생성 후 5초간 삭제 불가</b> (보호 시간)</div>
+              <div>• ⏱ <b className="text-amber-300">게임 시작 후 5초간 모든 카드 삭제 불가</b></div>
               <div>• 🔍 검색창으로 숨겨진 내 정보 찾기</div>
               <div className="text-green-300/80 pt-1">
                 🎯 3분 안에 내 카드 전부 0개 만들기
@@ -72,8 +72,8 @@ export function RulesPanel({ role, expectedRole }: Props) {
             </div>
             <div className="text-[11px] text-white/70 leading-relaxed space-y-0.5">
               <div>• 카드 <b className="text-white">클릭</b>해서 복제</div>
-              <div>• 한 번에 <b className="text-white">2개</b>로 복제 (펑!)</div>
-              <div>• ⚡ <b className="text-amber-300">처음 5초가 황금시간</b> (이때 삭제 불가)</div>
+              <div>• 한 번에 <b className="text-white">2~3개</b>로 복제 (펑!)</div>
+              <div>• ⚡ <b className="text-amber-300">시작 5초가 황금시간</b> (이때 삭제팀 손 못 댐)</div>
               <div>• 내가 만든 카드는 복제 불가</div>
               <div className="text-red-300/80 pt-1">
                 🎯 3분 뒤 필드에 1개라도 남기기
