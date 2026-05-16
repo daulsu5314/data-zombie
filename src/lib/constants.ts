@@ -45,25 +45,25 @@ export const STAGE_STYLES: Record<InfectionStage, {
   bg: string; border: string; text: string; nameColor: string; glow: string;
 }> = {
   safe: {
-    bg: "bg-green-500/10",
-    border: "border-green-400/50",
-    text: "text-green-100",
-    nameColor: "text-green-300",
-    glow: "shadow-[0_0_8px_rgba(34,197,94,0.3),inset_0_0_12px_rgba(34,197,94,0.1)]",
+    bg: "bg-green-500/30",
+    border: "border-green-400/80",
+    text: "text-green-50",
+    nameColor: "text-green-200",
+    glow: "shadow-[0_0_10px_rgba(34,197,94,0.5),inset_0_0_14px_rgba(34,197,94,0.2)]",
   },
   warning: {
-    bg: "bg-amber-500/15",
-    border: "border-amber-400/60",
-    text: "text-amber-100",
-    nameColor: "text-amber-300",
-    glow: "shadow-[0_0_10px_rgba(251,191,36,0.4),inset_0_0_14px_rgba(251,191,36,0.15)]",
+    bg: "bg-amber-500/35",
+    border: "border-amber-400/90",
+    text: "text-amber-50",
+    nameColor: "text-amber-200",
+    glow: "shadow-[0_0_12px_rgba(251,191,36,0.6),inset_0_0_16px_rgba(251,191,36,0.25)]",
   },
   critical: {
-    bg: "bg-red-500/15",
-    border: "border-red-400/70",
-    text: "text-red-100",
-    nameColor: "text-red-300",
-    glow: "shadow-[0_0_12px_rgba(239,68,68,0.5),inset_0_0_16px_rgba(239,68,68,0.2)]",
+    bg: "bg-red-500/35",
+    border: "border-red-400",
+    text: "text-red-50",
+    nameColor: "text-red-200",
+    glow: "shadow-[0_0_14px_rgba(239,68,68,0.7),inset_0_0_18px_rgba(239,68,68,0.3)]",
   },
 };
 
