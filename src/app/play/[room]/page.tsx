@@ -252,6 +252,8 @@ export default function PlayPage() {
       : myIdx < DELETER_COUNT
         ? "deleter"
         : "spreader";
+    const isExpectedSpreader = expectedRole === "spreader";
+    const isExpectedDeleter = expectedRole === "deleter";
 
     return (
       <main className="min-h-screen p-4 md:p-6 max-w-3xl mx-auto">
@@ -263,15 +265,54 @@ export default function PlayPage() {
           </p>
         </div>
 
-        {!submitted ? (
+        {/* ============================================ */}
+        {/* 1단계 공통: 역할 발표 (큰 배너로 강조)        */}
+        {/* ============================================ */}
+        {expectedRole && (
+          <div
+            className={`rounded-2xl p-6 mb-4 text-center border-2 ${
+              isExpectedDeleter
+                ? "bg-green-500/15 border-green-400/60"
+                : "bg-red-500/15 border-red-400/60"
+            }`}
+          >
+            <div className="text-[11px] tracking-[0.3em] text-white/60 mb-2">
+              YOUR ROLE
+            </div>
+            <div className="text-6xl mb-2">{isExpectedDeleter ? "🛡" : "🦠"}</div>
+            <div
+              className={`text-3xl font-bold mb-1 ${
+                isExpectedDeleter ? "text-green-200" : "text-red-200"
+              }`}
+            >
+              {isExpectedDeleter ? "삭제팀 (PURGE TEAM)" : "유포자 (INFECTED)"}
+            </div>
+            <p className="text-sm text-white/70 mt-2">
+              {isExpectedDeleter
+                ? "🎯 내 정보를 지키는 임무 — 화면에 보이는 내 카드를 빠르게 지우세요"
+                : "🎯 정보를 퍼뜨리는 임무 — 다른 학생들 카드를 클릭해서 복제하세요"}
+            </p>
+            <div className="text-[10px] text-white/40 mt-3 font-mono tracking-widest">
+              입장 순번 #{myIdx + 1} ·{" "}
+              {isExpectedDeleter
+                ? `먼저 입장한 ${DELETER_COUNT}명 중 1명`
+                : "삭제팀 이후 입장자"}
+            </div>
+          </div>
+        )}
+
+        {/* ============================================ */}
+        {/* 2단계: 역할별 분기                           */}
+        {/* ============================================ */}
+
+        {/* 삭제팀 — 카드 작성 → 대기 */}
+        {isExpectedDeleter && !submitted && (
           <div className="space-y-4">
-            {/* 게임 룰 패널 */}
             <RulesPanel expectedRole={expectedRole} />
 
-            {/* 카드 작성 */}
             <div className="bg-white/5 border border-white/10 rounded-xl p-4">
               <p className="text-sm text-white/70 mb-3">
-                📇 <b>내 개인정보 카드 {CARDS_PER_PLAYER}개</b>를 작성하세요. 게임이 시작되면
+                📇 <b>지킬 내 정보 카드 {CARDS_PER_PLAYER}장</b>을 작성하세요. 게임이 시작되면
                 이 정보가 다른 학생들 화면에 나타나요.
               </p>
               <div className="space-y-3">
@@ -291,7 +332,7 @@ export default function PlayPage() {
                           next[i].name = e.target.value;
                           setInputs(next);
                         }}
-                        className="bg-black/30 border border-white/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-400 text-white"
+                        className="bg-black/30 border border-white/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-400 text-white"
                       />
                       <input
                         type="text"
@@ -303,7 +344,7 @@ export default function PlayPage() {
                           setInputs(next);
                         }}
                         maxLength={8}
-                        className="bg-black/30 border border-white/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-400 text-white"
+                        className="bg-black/30 border border-white/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-400 text-white"
                       />
                       <input
                         type="text"
@@ -314,7 +355,7 @@ export default function PlayPage() {
                           next[i].hobby = e.target.value;
                           setInputs(next);
                         }}
-                        className="bg-black/30 border border-white/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-400 text-white"
+                        className="bg-black/30 border border-white/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-400 text-white"
                       />
                     </div>
                   </div>
@@ -322,7 +363,7 @@ export default function PlayPage() {
               </div>
               <button
                 onClick={handleSubmit}
-                className="w-full bg-purple-500 hover:bg-purple-400 text-white font-medium py-3 rounded-xl transition mt-4"
+                className="w-full bg-green-500 hover:bg-green-400 text-white font-medium py-3 rounded-xl transition mt-4"
               >
                 카드 등록하고 대기하기
               </button>
@@ -331,32 +372,50 @@ export default function PlayPage() {
               </p>
             </div>
           </div>
-        ) : (
+        )}
+
+        {/* 삭제팀 — 카드 등록 완료 후 대기 */}
+        {isExpectedDeleter && submitted && (
           <div className="space-y-4">
-            {/* 등록 완료 + 예정 역할 */}
             <div className="bg-green-500/10 border border-green-400/30 rounded-xl p-5 text-center">
               <div className="text-3xl mb-2">✅</div>
               <p className="font-medium mb-1">카드 등록 완료!</p>
-              <p className="text-sm text-white/60 mb-3">
+              <p className="text-sm text-white/60 mb-1">
                 선생님이 게임을 시작하면 자동으로 이동합니다...
               </p>
-              {expectedRole && (
-                <div className="inline-block px-3 py-1.5 rounded-lg text-xs font-mono tracking-wider"
-                  style={{
-                    background: expectedRole === "deleter" ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)",
-                    color: expectedRole === "deleter" ? "#86efac" : "#fca5a5",
-                    border: `1px solid ${expectedRole === "deleter" ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)"}`,
-                  }}>
-                  내 입장 순번 #{myIdx + 1} → 예정: {expectedRole === "deleter" ? "🛡 삭제팀" : "🦠 유포자"}
-                </div>
-              )}
               <p className="text-[11px] text-white/40 mt-3">
-                총 {players.length}명 대기 중 · 먼저 들어온 {DELETER_COUNT}명만 삭제팀
+                총 {players.length}명 대기 중
               </p>
             </div>
 
-            {/* 내 역할 행동 가이드 */}
             <RulesPanel expectedRole={expectedRole} />
+          </div>
+        )}
+
+        {/* 유포자 — 카드 작성 없이 바로 대기 + 룰 학습 */}
+        {isExpectedSpreader && (
+          <div className="space-y-4">
+            <div className="bg-red-500/10 border border-red-400/30 rounded-xl p-5 text-center">
+              <div className="text-3xl mb-2">🦠</div>
+              <p className="font-medium text-red-200 mb-1">대기 중...</p>
+              <p className="text-sm text-white/70">
+                유포자는 카드를 만들지 않아요.
+                <br />
+                다른 학생들의 카드를 <b className="text-red-300">복제</b>하는 것이 임무입니다.
+              </p>
+              <p className="text-[11px] text-white/40 mt-3">
+                선생님이 게임을 시작하면 자동으로 이동합니다 · 총 {players.length}명 대기 중
+              </p>
+            </div>
+
+            <RulesPanel expectedRole={expectedRole} />
+          </div>
+        )}
+
+        {/* 역할 아직 결정 안 됨 (예외 케이스) */}
+        {!expectedRole && (
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6 text-center text-white/60">
+            역할 배정 중...
           </div>
         )}
       </main>
