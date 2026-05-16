@@ -143,27 +143,45 @@ export default function PlayPage() {
     return m;
   }, [liveCards]);
 
-  // 검색 — 매칭되는 카드 중 1개만 노란 ring으로 강조 (내 카드 우선)
+  // 검색 — 매칭되는 카드 중 1개만 노란 ring으로 강조
+  // "다음" 버튼을 누르면 다음 매칭으로 이동 (순환)
   const searchLower = search.trim().toLowerCase();
+  const [searchIndex, setSearchIndex] = useState(0);
 
-  const searchHitId = useMemo(() => {
-    if (!searchLower) return null;
-    // 매칭되는 카드들 필터링
+  // 매칭되는 카드 목록 (내 카드 우선, 오래된 것 우선)
+  const searchMatches = useMemo(() => {
+    if (!searchLower) return [];
     const matches = liveCards.filter((c) =>
       c.name.toLowerCase().includes(searchLower) ||
       c.hobby.toLowerCase().includes(searchLower) ||
       c.birthday.toLowerCase().includes(searchLower)
     );
-    if (matches.length === 0) return null;
-    // 내 카드 우선, 그 중 가장 오래된 것 우선
+    if (matches.length === 0) return [];
     const mine = matches.filter((c) => c.owner_id === myId);
-    const pool = mine.length > 0 ? mine : matches;
-    pool.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-    return pool[0].id;
+    const other = matches.filter((c) => c.owner_id !== myId);
+    mine.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    other.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    return [...mine, ...other];  // 내 카드 먼저, 그 다음 다른 사람 카드
   }, [searchLower, liveCards, myId]);
+
+  // 현재 인덱스의 매칭 카드 ID (검색어 바뀌면 0으로 리셋)
+  const searchHitId = searchMatches.length > 0
+    ? searchMatches[searchIndex % searchMatches.length].id
+    : null;
+
+  // 검색어 바뀌면 인덱스 리셋
+  useEffect(() => {
+    setSearchIndex(0);
+  }, [searchLower]);
 
   function searchHit(c: Card) {
     return c.id === searchHitId;
+  }
+
+  // "다음 찾기" — 인덱스 +1
+  function findNext() {
+    if (searchMatches.length === 0) return;
+    setSearchIndex(prev => (prev + 1) % searchMatches.length);
   }
 
   // 카드 좌클릭 — 역할에 따라 다르게 동작
@@ -538,6 +556,20 @@ export default function PlayPage() {
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 min-w-[180px] bg-black/30 border border-white/15 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-purple-400"
             />
+            {searchMatches.length > 0 && (
+              <button
+                onClick={findNext}
+                className="px-3 py-1.5 rounded-lg text-sm transition whitespace-nowrap bg-yellow-400/20 hover:bg-yellow-400/30 text-yellow-200 border border-yellow-400/40"
+                title="다음 매칭 카드로 이동"
+              >
+                🔍 다음 ({searchIndex + 1}/{searchMatches.length})
+              </button>
+            )}
+            {searchLower && searchMatches.length === 0 && (
+              <span className="px-3 py-1.5 text-sm text-white/40">
+                검색 결과 없음
+              </span>
+            )}
             <button
               onClick={() => setFocusMine(!focusMine)}
               className={`px-3 py-1.5 rounded-lg text-sm transition whitespace-nowrap ${
