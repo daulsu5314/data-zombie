@@ -77,6 +77,8 @@ export default function PlayPage() {
   const cooldownRef = useRef<Record<string, number>>({});
   const breachTriggerRef = useRef(false);  // 중복 발동 방지
   const endRoomTriggerRef = useRef(false); // 종료 중복 호출 방지
+  // 시간 0 도달 시 즉시 종료 화면 보여주기 (DB 응답 안 기다림)
+  const [forceEnd, setForceEnd] = useState(false);
 
   // 타이머
   const [timeLeft, setTimeLeft] = useState(0);
@@ -101,12 +103,15 @@ export default function PlayPage() {
         });
       }
 
-      // 시간 다 되면 자동 종료 (먼저 본 사람이 종료, ref 가드로 중복 호출 방지)
-      if (left <= 0 && room.status === "playing" && !endRoomTriggerRef.current) {
-        endRoomTriggerRef.current = true;
-        endRoom(room.id).catch(() => {
-          endRoomTriggerRef.current = false;
-        });
+      // 시간 다 되면 즉시 종료 화면으로 (DB 응답 안 기다림)
+      if (left <= 0 && room.status === "playing") {
+        if (!forceEnd) setForceEnd(true);
+        if (!endRoomTriggerRef.current) {
+          endRoomTriggerRef.current = true;
+          endRoom(room.id).catch(() => {
+            endRoomTriggerRef.current = false;
+          });
+        }
       }
     };
     tick();
@@ -236,8 +241,8 @@ export default function PlayPage() {
     );
   }
 
-  // 종료 화면
-  if (room.status === "ended") {
+  // 종료 화면 (status가 ended이거나 forceEnd로 강제 종료된 경우)
+  if (room.status === "ended" || forceEnd) {
     return (
       <main className="min-h-screen">
         <ResultsView
