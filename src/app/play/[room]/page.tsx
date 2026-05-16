@@ -9,7 +9,7 @@ import {
 import {
   copyCard, createOriginalCards, deleteCard, endRoom, triggerBreach,
 } from "@/lib/game";
-import { CARDS_PER_PLAYER, COPY_COOLDOWN_MS, DELETER_COUNT, DELETE_PROTECTION_MS, getInfectionStage } from "@/lib/constants";
+import { CARDS_PER_PLAYER, COPY_COOLDOWN_MS, DELETER_COUNT, GAME_START_GRACE_MS, getInfectionStage } from "@/lib/constants";
 import { CardItem } from "@/components/CardItem";
 import { ServerLog } from "@/components/ServerLog";
 import { usePopEffects } from "@/components/PopEffect";
@@ -180,10 +180,12 @@ export default function PlayPage() {
       // 다른 친구 카드 — 클릭해도 삭제 안 됨
       return;
     }
-    // 카드 생성 후 5초간은 삭제 불가 (유포자 보호 시간)
-    const cardAge = Date.now() - new Date(c.created_at).getTime();
-    if (cardAge < DELETE_PROTECTION_MS) {
-      return;
+    // 게임 시작 후 5초간은 모든 카드 삭제 불가 (유포자 카오스 시간)
+    if (room?.started_at) {
+      const elapsed = Date.now() - new Date(room.started_at).getTime();
+      if (elapsed < GAME_START_GRACE_MS) {
+        return;
+      }
     }
     await deleteCard(c, myId);
   }
@@ -428,8 +430,38 @@ export default function PlayPage() {
   const myCardsRemaining = liveCards.filter((c) => c.owner_id === myId).length;
   const totalCopies = logs.filter((l) => l.action === "COPY").length;
 
+  // 시작 5초 grace 카운트다운 (삭제팀에게만 의미 있음)
+  const graceRemainingMs = room?.started_at
+    ? Math.max(0, GAME_START_GRACE_MS - (Date.now() - new Date(room.started_at).getTime()))
+    : 0;
+  const inGracePeriod = graceRemainingMs > 0;
+
   return (
     <main className="min-h-screen p-3 md:p-4">
+      {/* 시작 5초 — 삭제 불가 안내 배너 */}
+      {inGracePeriod && !amSpreader && (
+        <div className="bg-amber-500/15 border border-amber-400/50 rounded-xl px-4 py-2 mb-3 text-center">
+          <span className="text-amber-200 text-sm font-medium">
+            ⏱ 시작 직후 5초 — 아직 삭제 불가!{" "}
+            <span className="text-amber-300 font-bold tabular-nums">
+              {Math.ceil(graceRemainingMs / 1000)}초
+            </span>{" "}
+            후 삭제 가능
+          </span>
+        </div>
+      )}
+      {inGracePeriod && amSpreader && (
+        <div className="bg-red-500/15 border border-red-400/50 rounded-xl px-4 py-2 mb-3 text-center">
+          <span className="text-red-200 text-sm font-medium">
+            ⚡ 황금시간! 마음껏 복제하세요{" "}
+            <span className="text-red-300 font-bold tabular-nums">
+              {Math.ceil(graceRemainingMs / 1000)}초
+            </span>{" "}
+            남음
+          </span>
+        </div>
+      )}
+
       {/* 상단 HUD */}
       <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 mb-3 gap-3 flex-wrap">
         <div className="flex items-center gap-2">
