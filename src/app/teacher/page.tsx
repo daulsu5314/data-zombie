@@ -302,27 +302,6 @@ export default function TeacherPage() {
 
         {activeRoom.status === "playing" && (
           <div className="space-y-4">
-            {/* BREACH 발생 배너 */}
-            {activeRoom.breach_at ? (
-              <div className="bg-red-500/15 border border-red-400/50 rounded-xl px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl animate-pulse">⚠</span>
-                  <div>
-                    <div className="text-red-300 font-bold tracking-wider text-sm">DATA BREACH 발생</div>
-                    <div className="text-[11px] text-red-200/70">
-                      {new Date(activeRoom.breach_at).toLocaleTimeString("ko-KR")} · 카드 2배 + 위치 재배치 완료
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : timeLeft > 0 && timeLeft < activeRoom.duration_seconds - 90 + 10 && timeLeft > activeRoom.duration_seconds - 90 - 10 ? (
-              <div className="bg-amber-500/15 border border-amber-400/50 rounded-xl px-4 py-2 text-center">
-                <span className="text-amber-300 text-sm font-medium animate-pulse">
-                  ⚠ 곧 데이터 유출 사고가 발생합니다...
-                </span>
-              </div>
-            ) : null}
-
             {/* 상단: 타이머 + 핵심 지표 */}
             <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-3">
               {/* 큰 타이머 */}
