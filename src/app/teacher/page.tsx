@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { createRoom, assignRolesAndStart, endRoom } from "@/lib/game";
 import { usePlayers, useRoom, useCards, useLogs } from "@/lib/realtime";
@@ -102,6 +102,26 @@ export default function TeacherPage() {
     ? Math.max(0, activeRoom.duration_seconds - Math.floor((now - new Date(activeRoom.started_at).getTime()) / 1000))
     : 0;
   const timeLeftStr = `${Math.floor(timeLeft / 60)}:${String(timeLeft % 60).padStart(2, "0")}`;
+
+  // 시간 0 도달 시 자동 종료 (학생 측 호출 실패 대비 백업)
+  const endTriggerRef = useRef(false);
+  useEffect(() => {
+    if (
+      activeRoom?.status === "playing" &&
+      activeRoom.started_at &&
+      timeLeft <= 0 &&
+      !endTriggerRef.current
+    ) {
+      endTriggerRef.current = true;
+      endRoom(activeRoom.id).catch(() => {
+        endTriggerRef.current = false;
+      });
+    }
+    // 새 방이 시작되면 리셋
+    if (activeRoom?.status === "lobby") {
+      endTriggerRef.current = false;
+    }
+  }, [timeLeft, activeRoom?.status, activeRoom?.id, activeRoom?.started_at]);
 
   // 최근 로그 5개
   const recentLogs = [...logs].slice(-8).reverse();
