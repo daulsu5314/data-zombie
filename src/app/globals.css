@@ -23,3 +23,13 @@ html, body {
   20%  { opacity: 1; transform: scale(1); }
   100% { opacity: 1; }
 }
+
+/* CRITICAL 카드 펄스 — opacity만 변경해서 클릭 영역은 유지
+   (Tailwind animate-pulse는 자식 box를 흔들어서 클릭 가로채는 경우 있음) */
+@keyframes critical-glow-pulse {
+  0%, 100% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.7), inset 0 0 18px rgba(239, 68, 68, 0.3); }
+  50%      { box-shadow: 0 0 24px rgba(239, 68, 68, 1),   inset 0 0 24px rgba(239, 68, 68, 0.5); }
+}
+.card-critical-pulse {
+  animation: critical-glow-pulse 1.5s ease-in-out infinite;
+}
