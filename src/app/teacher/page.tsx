@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { createRoom, assignRolesAndStart, endRoom } from "@/lib/game";
+import { createRoom, assignRolesAndStart, endRoom, leaveRoom } from "@/lib/game";
 import { usePlayers, useRoom, useCards, useLogs } from "@/lib/realtime";
 import { DELETER_COUNT, MIN_PLAYERS_TO_START } from "@/lib/constants";
 import { TeacherFieldView } from "@/components/TeacherFieldView";
@@ -254,7 +254,7 @@ export default function TeacherPage() {
                   return (
                     <div
                       key={p.id}
-                      className="flex items-center gap-2 bg-white/5 px-3 py-2 rounded-lg"
+                      className="flex items-center gap-2 bg-white/5 px-3 py-2 rounded-lg group"
                     >
                       <span className="text-[10px] text-white/40 tabular-nums w-5">#{idx + 1}</span>
                       <div className={`w-2 h-2 rounded-full ${willBeDeleter ? "bg-green-400" : "bg-red-400"}`} />
@@ -274,6 +274,17 @@ export default function TeacherPage() {
                       <span className={`text-[10px] tracking-wider ${willBeDeleter ? "text-green-300/70" : "text-red-300/70"}`}>
                         {willBeDeleter ? "삭제팀" : "유포자"}
                       </span>
+                      <button
+                        onClick={() => {
+                          if (confirm(`'${p.nickname}' 학생을 명단에서 제거할까요?`)) {
+                            leaveRoom(p.id).catch(console.error);
+                          }
+                        }}
+                        className="text-white/30 hover:text-red-400 transition opacity-0 group-hover:opacity-100 text-sm leading-none px-1"
+                        title="이 학생 제거 (안 들어온 유령 학생일 때)"
+                      >
+                        ✕
+                      </button>
                     </div>
                   );
                 })}
