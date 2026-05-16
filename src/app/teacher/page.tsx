@@ -7,6 +7,7 @@ import { usePlayers, useRoom, useCards, useLogs } from "@/lib/realtime";
 import { DELETER_COUNT, MIN_PLAYERS_TO_START } from "@/lib/constants";
 import { TeacherFieldView } from "@/components/TeacherFieldView";
 import { ResultsView } from "@/components/ResultsView";
+import { RulesPanel } from "@/components/RulesPanel";
 import type { Room } from "@/types";
 
 export default function TeacherPage() {
@@ -157,22 +158,37 @@ export default function TeacherPage() {
         </div>
 
         {activeRoom.status === "lobby" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* QR + 코드 */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
-              <p className="text-sm text-white/60 mb-2">학생들에게 보여주세요</p>
-              <div className="text-5xl font-bold font-mono tracking-[0.3em] my-3 text-purple-300">
-                {activeRoom.code}
+          <div className="space-y-6">
+            {/* 게임 룰 패널 — 학생들에게 설명할 때 사용 */}
+            <details open className="bg-white/5 border border-white/10 rounded-2xl">
+              <summary className="cursor-pointer px-5 py-3 flex items-center justify-between hover:bg-white/5 rounded-2xl select-none">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📖</span>
+                  <span className="font-medium">게임 룰 설명 <span className="text-xs text-white/40">(학생들에게 보여주세요)</span></span>
+                </div>
+                <span className="text-xs text-white/40">▼ 펼치기/접기</span>
+              </summary>
+              <div className="px-5 pb-5">
+                <RulesPanel />
               </div>
-              <div className="bg-white p-4 rounded-xl inline-block mt-2">
-                {joinUrl && <QRCodeSVG value={joinUrl} size={180} />}
-              </div>
-              <p className="text-xs text-white/40 mt-3 break-all">{joinUrl}</p>
-            </div>
+            </details>
 
-            {/* 입장한 학생 목록 */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* QR + 코드 */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
+                <p className="text-sm text-white/60 mb-2">학생들에게 보여주세요</p>
+                <div className="text-5xl font-bold font-mono tracking-[0.3em] my-3 text-purple-300">
+                  {activeRoom.code}
+                </div>
+                <div className="bg-white p-4 rounded-xl inline-block mt-2">
+                  {joinUrl && <QRCodeSVG value={joinUrl} size={180} />}
+                </div>
+                <p className="text-xs text-white/40 mt-3 break-all">{joinUrl}</p>
+              </div>
+
+              {/* 입장한 학생 목록 */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-3">
                 <h2 className="font-medium">
                   입장한 학생 <span className="text-purple-300">{players.length}</span>명
                 </h2>
@@ -185,17 +201,19 @@ export default function TeacherPage() {
                 </button>
               </div>
 
-              {/* 카드 작성 진행률 */}
+              {/* 카드 작성 진행률 — 삭제팀 예정자만 카드 만들기 */}
               <div className="mb-3 text-xs text-white/60 flex items-center gap-2">
-                <span>📇 카드 작성:</span>
+                <span>📇 삭제팀 카드 작성:</span>
                 <span className="text-green-300 font-medium">{playersWithCards.size}</span>
                 <span>/</span>
-                <span>{players.length}명</span>
+                <span>{Math.min(DELETER_COUNT, players.length)}명</span>
                 {players.length > 0 && (
                   <div className="flex-1 ml-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-green-400 transition-all"
-                      style={{ width: `${(playersWithCards.size / players.length) * 100}%` }}
+                      style={{
+                        width: `${Math.min(100, (playersWithCards.size / Math.max(1, Math.min(DELETER_COUNT, players.length))) * 100)}%`,
+                      }}
                     />
                   </div>
                 )}
@@ -219,12 +237,18 @@ export default function TeacherPage() {
                       <span className="text-[10px] text-white/40 tabular-nums w-5">#{idx + 1}</span>
                       <div className={`w-2 h-2 rounded-full ${willBeDeleter ? "bg-green-400" : "bg-red-400"}`} />
                       <span className="text-sm flex-1">{p.nickname}</span>
-                      <span
-                        className={`text-[10px] ${hasCard ? "text-green-300" : "text-white/30"}`}
-                        title={hasCard ? "카드 등록 완료" : "카드 미작성"}
-                      >
-                        {hasCard ? "📇 ✓" : "📇 ⋯"}
-                      </span>
+                      {willBeDeleter ? (
+                        <span
+                          className={`text-[10px] ${hasCard ? "text-green-300" : "text-white/30"}`}
+                          title={hasCard ? "카드 등록 완료" : "카드 미작성"}
+                        >
+                          {hasCard ? "📇 ✓" : "📇 ⋯"}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-red-300/50" title="유포자는 카드 작성 안 함">
+                          🦠 대기
+                        </span>
+                      )}
                       <span className={`text-[10px] tracking-wider ${willBeDeleter ? "text-green-300/70" : "text-red-300/70"}`}>
                         {willBeDeleter ? "삭제팀" : "유포자"}
                       </span>
@@ -238,6 +262,7 @@ export default function TeacherPage() {
                   나머지 {Math.max(0, players.length - DELETER_COUNT)}명 = 유포자
                 </p>
               )}
+            </div>
             </div>
           </div>
         )}
