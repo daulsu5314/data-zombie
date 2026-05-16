@@ -76,15 +76,6 @@ export function ResultsView({ cards, logs, durationSec, myRole }: Props) {
         </p>
       </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-5">
-        <h2 className="text-sm font-medium mb-3">🗣️ 토론 질문</h2>
-        <ol className="text-sm text-white/80 space-y-2 list-decimal list-inside leading-relaxed">
-          <li>유포자가 단 몇 명뿐인데 왜 삭제팀이 따라잡기 힘들었을까요?</li>
-          <li>실제 SNS에서 누군가의 사진/말이 퍼졌다면, 어떻게 다를까요?</li>
-          <li>"서버 로그"는 현실에서 무엇에 해당할까요? (캐시, 스크린샷, 백업, 검색엔진...)</li>
-          <li>이 게임에서 가장 좋은 방어 전략은 무엇이었나요? 현실에서는요?</li>
-        </ol>
-      </div>
     </div>
   );
 }
