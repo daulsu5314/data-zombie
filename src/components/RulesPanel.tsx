@@ -71,6 +71,9 @@ export function RulesPanel({ role, expectedRole }: Props) {
               )}
             </div>
             <div className="text-[11px] text-white/70 leading-relaxed space-y-0.5">
+              <div className="bg-red-500/20 border border-red-400/60 rounded px-2 py-1.5 mb-1.5 text-red-300 font-bold tracking-wide animate-pulse">
+                🎯 🟢 초록색 카드를 먼저 클릭해서 퍼트려주세요!!
+              </div>
               <div>• 카드 <b className="text-white">클릭</b>해서 복제</div>
               <div>• 한 번에 <b className="text-white">2개</b>로 복제 (펑!)</div>
               <div>• 💨 복제된 카드는 <b className="text-red-300">대부분 숨김 상태</b>로 떠다님</div>
