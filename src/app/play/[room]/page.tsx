@@ -33,28 +33,29 @@ export default function PlayPage() {
     setMyId(localStorage.getItem(`player:${roomId}`));
   }, [roomId]);
 
-  // 탭 닫기/새로고침 시 lobby 상태면 자동 퇴장
+  // 탭 닫기/새로고침/백그라운드 이동 시 lobby 상태면 자동 퇴장
   // 게임 시작 후에는 유지 (다시 들어올 수 있게)
   useEffect(() => {
     if (!myId || !room) return;
     const handler = () => {
       if (room.status === "lobby") {
-        // fetch keepalive — 탭 닫힐 때도 요청 보장
         const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/players?id=eq.${myId}`;
         const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
         fetch(url, {
           method: "DELETE",
-          headers: {
-            apikey: key,
-            Authorization: `Bearer ${key}`,
-          },
+          headers: { apikey: key, Authorization: `Bearer ${key}` },
           keepalive: true,
         }).catch(() => {});
         localStorage.removeItem(`player:${roomId}`);
       }
     };
+    // 여러 이벤트 동시 등록 — 브라우저별로 동작 다름
     window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
+    window.addEventListener("pagehide", handler);
+    return () => {
+      window.removeEventListener("beforeunload", handler);
+      window.removeEventListener("pagehide", handler);
+    };
   }, [myId, room, roomId]);
 
   const me = players.find((p) => p.id === myId);
