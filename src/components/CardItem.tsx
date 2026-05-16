@@ -16,29 +16,13 @@ interface Props {
   onContextMenu: () => void;
 }
 
-/**
- * z-index 계층 (높을수록 위)
- *
- * 삭제팀 시점:
- *   1000: 내 카드 (절대 맨 위)
- *    500: 검색 히트
- *      1: 일반 카드
- *
- * 유포자 시점:
- *   1000: 검색 히트 (없음, 검색 자체가 삭제팀 기능)
- *    300: SAFE 카드 (가장 가치 있는 타겟)
- *    200: WARNING 카드
- *    100: CRITICAL 카드 (이미 많이 퍼져서 우선순위 낮음)
- *      1: 기타
- */
 function getZIndex(isMine: boolean, searchHit: boolean, amSpreader: boolean, stage: InfectionStage): number {
   if (!amSpreader) {
-    // 삭제팀
     if (isMine) return 1000;
     if (searchHit) return 500;
     return 1;
   }
-  // 유포자: 덜 감염된 카드(SAFE)일수록 위로
+  // 유포자: 덜 감염된 카드가 위로 (SAFE > WARNING > CRITICAL)
   if (stage === "safe") return 300;
   if (stage === "warning") return 200;
   if (stage === "critical") return 100;
@@ -51,29 +35,34 @@ function CardItemImpl({
   const s = STAGE_STYLES[stage];
 
   // opacity 계산
+  // 숨김 + 검색에 안 걸림 → 흐리게 (단, 내 카드면 좀 더 잘 보이게)
+  // focusMine 모드: 내 카드 아니면 0.15
   let opacity = 1;
-  if (card.hidden && !searchHit) opacity = 0.08;
-  else if (focusMine && !isMine) opacity = 0.15;
+  if (card.hidden && !searchHit) {
+    opacity = isMine ? 0.4 : 0.25;  // 내 숨김 카드는 더 보이게
+  } else if (focusMine && !isMine) {
+    opacity = 0.15;
+  }
 
-  // 내 카드 강조 (흰 ring)
   const mineRing = isMine
     ? "ring-[3px] ring-white shadow-[0_0_24px_rgba(255,255,255,0.8)]"
     : "";
   const hitRing = searchHit ? "ring-2 ring-yellow-300 ring-offset-1 ring-offset-black" : "";
-
-  // CRITICAL은 펄스 — 단, 박스 자체가 아니라 inner glow에만 적용해서 클릭 영역 유지
   const pulse = stage === "critical" ? "card-critical-pulse" : "";
 
   const zIndex = getZIndex(isMine, searchHit, amSpreader, stage);
   const scaleClass = isMine ? "scale-[1.15]" : "";
 
+  // 카드 본문 클릭 = 카드 클릭으로 처리. 자식이 가로채지 못하게 pointer-events 제어.
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClick();
+  };
+
   return (
     <div
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onClick();
-      }}
+      onClick={handleClick}
       onContextMenu={(e) => { e.preventDefault(); onContextMenu(); }}
       onTouchStart={(e) => {
         if (!amSpreader) return;
@@ -87,13 +76,16 @@ function CardItemImpl({
         top: `${card.y}%`,
         opacity,
         zIndex,
+        // 카드 hover scale 자체는 className에서 처리. 클릭 영역 안정성을 위해
+        // 자식 요소의 pointer-events 차단 (자식 hover/animation이 클릭 가로채는 것 방지)
       }}
-      className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer
+      className={`card-item absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer
         ${s.bg} ${s.border} ${s.text} ${s.glow} ${mineRing} ${hitRing} ${pulse} ${scaleClass}
         border rounded-md px-3 py-2 min-w-[130px] backdrop-blur-sm
         animate-pop-in hover:scale-125 select-none font-mono`}
     >
-      <div className="flex items-center justify-between mb-0.5">
+      {/* 자식 요소들 모두 pointer-events: none — 클릭은 무조건 부모 div에서 처리 */}
+      <div className="flex items-center justify-between mb-0.5 pointer-events-none">
         <span className={`text-sm font-medium tracking-wide ${s.nameColor}`}>
           ▸ {card.name}
           {isMine && (
@@ -106,10 +98,10 @@ function CardItemImpl({
           {STAGE_LABEL[stage]}
         </span>
       </div>
-      <div className="text-[10px] opacity-90">생일: {card.birthday}</div>
-      <div className="text-[10px] opacity-90">취미: {card.hobby}</div>
+      <div className="text-[10px] opacity-90 pointer-events-none">생일: {card.birthday}</div>
+      <div className="text-[10px] opacity-90 pointer-events-none">취미: {card.hobby}</div>
       {copyCount > 0 && (
-        <div className={`text-[9px] opacity-80 mt-0.5 tracking-wider ${s.nameColor}`}>
+        <div className={`text-[9px] opacity-80 mt-0.5 tracking-wider pointer-events-none ${s.nameColor}`}>
           ×{copyCount} {stage === "critical" ? "PANDEMIC" : stage === "warning" ? "SPREADING" : ""}
         </div>
       )}
@@ -117,9 +109,6 @@ function CardItemImpl({
   );
 }
 
-/**
- * memo로 깜빡임 방지 — 부모 리렌더가 자주 일어나도 props가 같으면 리렌더 안 함
- */
 export const CardItem = memo(CardItemImpl, (prev, next) => {
   return (
     prev.card.id === next.card.id &&
