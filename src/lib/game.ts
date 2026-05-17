@@ -238,7 +238,8 @@ export interface GameStats {
   totalDeletes: number;
   remaining: number;
   logEntries: number;
-  topCopied: { name: string; count: number }[];
+  topCopied: { name: string; count: number }[];    // 누적 복제 횟수 (영구 로그 기준)
+  topRemaining: { name: string; count: number }[]; // 현재 살아있는 카드 수 (게임 종료 시점)
   spreadersWon: boolean;
   avgCopyMs: number;
   avgDeleteMs: number;
@@ -249,22 +250,48 @@ export function computeStats(
   logs: LogEntry[],
   durationSec: number
 ): GameStats {
-  const remaining = cards.filter((c) => !c.deleted).length;
+  const liveCards = cards.filter((c) => !c.deleted);
+  const remaining = liveCards.length;
   const copies = logs.filter((l) => l.action === "COPY").length;
   const deletes = logs.filter((l) => l.action === "DELETE").length;
 
-  // 가장 많이 복제된 origin 별 집계 (사람 이름 기준)
-  const byName: Record<string, number> = {};
+  // origin_id → name 매핑 (모든 카드 사용, deleted 포함)
+  const originToName: Record<string, string> = {};
+  cards.forEach((c) => {
+    if (!originToName[c.origin_id]) {
+      originToName[c.origin_id] = c.name;
+    }
+  });
+
+  // [1] 누적 복제 Top — 영구 로그의 COPY 액션 기반
+  const copyByOrigin: Record<string, number> = {};
   logs
     .filter((l) => l.action === "COPY")
     .forEach((l) => {
-      const card = cards.find((c) => c.origin_id === l.origin_id);
-      if (card) byName[card.name] = (byName[card.name] || 0) + 1;
+      copyByOrigin[l.origin_id] = (copyByOrigin[l.origin_id] || 0) + 1;
     });
-  const topCopied = Object.entries(byName)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([name, count]) => ({ name, count }));
+
+  const topCopied = Object.entries(copyByOrigin)
+    .map(([originId, count]) => ({
+      name: originToName[originId] ?? "(알 수 없음)",
+      count,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
+
+  // [2] 현재 살아있는 카드 Top — 게임 종료 시점에 화면에 남아있는 카드 수
+  const liveByOrigin: Record<string, number> = {};
+  liveCards.forEach((c) => {
+    liveByOrigin[c.origin_id] = (liveByOrigin[c.origin_id] || 0) + 1;
+  });
+
+  const topRemaining = Object.entries(liveByOrigin)
+    .map(([originId, count]) => ({
+      name: originToName[originId] ?? "(알 수 없음)",
+      count,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
 
   const totalMs = durationSec * 1000;
   return {
@@ -273,6 +300,7 @@ export function computeStats(
     remaining,
     logEntries: logs.length,
     topCopied,
+    topRemaining,
     spreadersWon: remaining > 0,
     avgCopyMs: copies > 0 ? Math.round(totalMs / copies) : 0,
     avgDeleteMs: deletes > 0 ? Math.round(totalMs / deletes) : 0,
