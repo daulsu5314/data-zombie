@@ -44,21 +44,67 @@ export function ResultsView({ cards, logs, durationSec, myRole }: Props) {
         <StatCard label="영구 로그" value={stats.logEntries} color="text-amber-300" />
       </div>
 
-      {stats.topCopied.length > 0 && (
-        <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-6">
-          <h2 className="text-sm font-medium mb-3">🏆 가장 많이 복제된 정보 Top 3</h2>
+      {/* Top 3: 누적 복제 횟수 (영구 로그 기준) */}
+      <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-4">
+        <h2 className="text-sm font-medium mb-1">🏆 가장 많이 복제된 정보 Top 3 <span className="text-white/40 text-xs">(누적 복제 횟수)</span></h2>
+        <p className="text-[11px] text-white/40 mb-3">3분 동안 유포자들이 가장 많이 클릭한 카드 — 지워져도 카운트는 그대로 (영구 로그)</p>
+        {stats.topCopied.length === 0 ? (
+          <p className="text-sm text-white/40 text-center py-4">
+            복제 기록이 없습니다
+          </p>
+        ) : (
           <div className="space-y-2">
-            {stats.topCopied.map((t, i) => (
-              <div key={t.name} className="flex items-center justify-between bg-black/30 px-4 py-2.5 rounded-lg">
-                <span className="text-sm">
-                  {["🥇", "🥈", "🥉"][i]} {t.name}
-                </span>
-                <span className="text-sm font-medium text-red-300 tabular-nums">{t.count}회 복제</span>
-              </div>
-            ))}
+            {stats.topCopied.map((t, i) => {
+              const medalColors = ["bg-yellow-400/15 border-yellow-400/50", "bg-gray-400/15 border-gray-400/50", "bg-orange-400/15 border-orange-400/50"];
+              return (
+                <div
+                  key={`copied-${t.name}-${i}`}
+                  className={`flex items-center justify-between px-4 py-3 rounded-lg border ${medalColors[i] ?? "bg-black/30"}`}
+                >
+                  <span className="text-base flex items-center gap-2">
+                    <span className="text-2xl">{["🥇", "🥈", "🥉"][i]}</span>
+                    <span className="font-medium">{t.name}</span>
+                  </span>
+                  <span className="text-base font-bold text-red-300 tabular-nums">
+                    {t.count}회 복제됨
+                  </span>
+                </div>
+              );
+            })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* Top 3: 게임 종료 시점에 살아남은 카드 */}
+      <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-6">
+        <h2 className="text-sm font-medium mb-1">📍 화면에 가장 많이 남은 정보 Top 3 <span className="text-white/40 text-xs">(살아남은 카드)</span></h2>
+        <p className="text-[11px] text-white/40 mb-3">게임 종료 시점에 화면에서 못 지운 카드 — 삭제팀이 결국 못 막은 정보</p>
+        {stats.topRemaining.length === 0 ? (
+          <p className="text-sm text-green-300 text-center py-4">
+            모든 카드가 지워졌습니다! 🎉
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {stats.topRemaining.map((t, i) => {
+              const medalColors = ["bg-red-400/15 border-red-400/50", "bg-amber-400/15 border-amber-400/50", "bg-orange-400/15 border-orange-400/50"];
+              return (
+                <div
+                  key={`remaining-${t.name}-${i}`}
+                  className={`flex items-center justify-between px-4 py-3 rounded-lg border ${medalColors[i] ?? "bg-black/30"}`}
+                >
+                  <span className="text-base flex items-center gap-2">
+                    <span className="text-2xl">{["🥇", "🥈", "🥉"][i]}</span>
+                    <span className="font-medium">{t.name}</span>
+                  </span>
+                  <span className="text-base font-bold text-amber-300 tabular-nums">
+                    {t.count}개 살아남음
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <div className="bg-amber-500/10 border border-amber-400/30 rounded-xl p-5 mb-6">
         <h2 className="text-sm font-medium text-amber-200 mb-2">💡 오늘의 교훈</h2>
@@ -69,6 +115,11 @@ export function ResultsView({ cards, logs, durationSec, myRole }: Props) {
           <br />
           화면에서는 사라졌어도 서버 로그에는{" "}
           <b>{stats.logEntries}개</b>의 흔적이 그대로 남아있어요.
+          <br />
+          <span className="text-red-300/90 text-xs mt-2 inline-block">
+            💭 위 두 표를 비교해보세요. 같은 이름이라도 <b>복제된 횟수</b>와 <b>화면에 남은 개수</b>가 다르죠?
+            지워도 서버 로그에는 그대로 남는다는 뜻이에요.
+          </span>
           <br />
           <span className="text-red-300 font-medium mt-2 inline-block">
             "지우는 데 3분이 걸렸지만, 복제하는 데는 0.1초도 안 걸렸습니다."
